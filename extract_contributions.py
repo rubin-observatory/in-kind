@@ -1,7 +1,7 @@
 import requests
 from html.parser import HTMLParser
 
-class ProposalParser(HTMLParser):
+class Proposal(HTMLParser):
 
     def __init__(self, program, url, vb=False):
         super().__init__()
@@ -23,21 +23,41 @@ class ProposalParser(HTMLParser):
         if self.vb: print("New HTML file: ", self.htmlfile)
         return
 
-    def run(self):
+    def read(self):
         if self.vb: print("Reading proposal from ",self.htmlfile)
         f = open(self.htmlfile, 'r')
         self.feed(f.read())
         f.close()
         return
 
-    def report(self):
+    def print_csv(self):
         if self.vb: print("Extracted ",self.count," contributions:")
         for S in self.contribution:
+            # Look up the Contribution Lead email address:
+            self.contribution[S].EMAIL = ""
+            # Look up the contribution category:
+            self.contribution[S].CATEGORY = ""
+            # Extract the contribution value:
+            N = self.contribution[S].extract_PI_value()
+            # Write out a CSV table row:
             print(self.PROGRAM_CODE+"-"+self.contribution[S].ID+",",
+                  ",,",
                   '"'+self.contribution[S].TITLE+'"'+",",
                   self.contribution[S].URL+",",
+                  self.contribution[S].LEAD+",",
+                  self.contribution[S].EMAIL+",",
                   self.contribution[S].LOI_CODE+",",
+                  self.contribution[S].CATEGORY+",",
+                  self.contribution[S].RECIPIENTS+",",
+                  '"'+self.contribution[S].one_line_SOW()+'"'+",",
+                  str(self.contribution[S].VALUE)+",",
                   self.contribution[S].EXCEPTION)
+        return
+
+    def print_SOW(self):
+        if self.vb: print("Statement of Work:")
+        for S in self.contribution:
+            print(self.contribution[S].print_SOW())
         return
 
     def handle_starttag(self, tag, attrs):
@@ -70,12 +90,12 @@ class ProposalParser(HTMLParser):
 
     def handle_data(self, data):
         # Ignore all the instructions:
-        if data[0:12] != "Instructions:":
+        if data[0:20] != "Instructions:":
             if self.vb: print("Encountered some text: ", data)
             pass
 
-        # Get the Program Code:
-        if "Program Code:" in data[0:12]:
+        # Check the Program Code:
+        if "Program Code:" in data[0:20]:
             THIS_PROGRAM_CODE = data.split(":")[1][1:]
             if THIS_PROGRAM_CODE != self.PROGRAM_CODE:
                 raise ValueError('Unexpected Program Code '+THIS_PROGRAM_CODE)
@@ -83,32 +103,134 @@ class ProposalParser(HTMLParser):
 
         if self.preamble: return
 
-        # Get the contribution title:
-        if "TITLE:" in data[0:12]:
-            title = ":".join(data.split(":")[1:])[1:]
-            self.contribution[self.current].TITLE = title
-            if self.vb: print("    Contribution Title: ", title)
-        # Check for exception requests. Format: "Exception requested: please begin review on November 6"
-        if "Exception requested:" in data[0:20]:
-            request = data.split(":")[1][1:]
-            due_date = " ".join(request.split(" ")[-2:])
-            self.contribution[self.current].EXCEPTION = due_date
-            if self.vb: print("    Contribution Due Date: ", due_date)        # Get the LOI Code:
-        if "LOI Code:" in data[0:12]:
-            self.contribution[self.current].LOI_CODE = data.split(":")[1][1:]
-            if self.vb: print("    Contribution LOI Code: ", self.contribution[self.current].LOI_CODE)
+        # Extend the current contribution with whatever text was found:
+        self.contribution[self.current].read(data)
+
         return
 
 # ======================================================================
 
 class Contribution():
-    def __init__(self):
+    def __init__(self, vb=False):
+        self.vb = vb
+        self.current = None
         self.ID = None
         self.URL = None
         self.TITLE = None
         self.EXCEPTION = None
         self.LOI_CODE = None
+        self.LEAD = None
+        self.EMAIL = None
+        self.RECIPIENTS = None
+        self.VALUE = None
+        self.CATEGORY = None
+        self.text = {}
         return
+
+    def read(self, data):
+        # Get the contribution title:
+        if "TITLE:" in data[0:20]:
+            self.TITLE = ":".join(data.split(":")[1:])[1:]
+            if self.vb: print("    Contribution Title: ", self.TITLE)
+            return
+        # Check for exception requests. Format: "Exception requested: please begin review on November 6"
+        if "Exception requested:" in data[0:20]:
+            request = data.split(":")[1][1:]
+            self.EXCEPTION = " ".join(request.split(" ")[-2:])
+            if self.vb: print("    Contribution Due Date: ", self.EXCEPTION)
+            return
+        # Get the LOI Code:
+        if "LOI Code:" in data[0:20]:
+            self.LOI_CODE = data.split(":")[1][1:]
+            if self.vb: print("    Contribution LOI Code: ", self.LOI_CODE)
+            return
+        # Get the Contribution Lead:
+        if "Contribution Lead:" in data[0:20]:
+            self.LEAD = data.split(":")[1][1:]
+            if self.vb: print("    Contribution Lead: ", self.LEAD)
+            return
+        # Get the Contribution Recipients:
+        if "Contribution Recipients:" in data[0:40]:
+            self.RECIPIENTS = data.split(":")[1][1:]
+            if self.vb: print("    Contribution Recipients: ", self.RECIPIENTS)
+            return
+        # Ignore the main subsection headings:
+        if "PLANNED ACTIVITIES" in data: return
+        if "TECHNICAL OBJECTIVES" in data: return
+        if "EXPECTED RIGHTS" in data: return
+        if "KEY PERSONNEL" in data: return
+        # Set the current subsection:
+        if "Background: Description" in data:
+            self.current = "BACKGROUND_DESCRIPTION"
+            self.text[self.current] = ""
+            return
+        if "Background: One" in data:
+            self.current = "BACKGROUND_SUMMARY"
+            self.text[self.current] = ""
+            return
+        if "Activity: Description" in data:
+            self.current = "ACTIVITY_DESCRIPTION"
+            self.text[self.current] = ""
+            return
+        if "Activity: One" in data:
+            self.current = "ACTIVITY_SUMMARY"
+            self.text[self.current] = ""
+            return
+        if "Deliverables: Description" in data:
+            self.current = "DELIVERABLES_DESCRIPTION"
+            self.text[self.current] = ""
+            return
+        if "Deliverables: One" in data:
+            self.current = "DELIVERABLES_SUMMARY"
+            self.text[self.current] = ""
+            return
+        if "Deliverables: Timeline" in data:
+            self.current = "DELIVERABLES_TIMELINE"
+            self.text[self.current] = ""
+            return
+        if "Data Rights: Description" in data:
+            self.current = "DATA_RIGHTS_DESCRIPTION"
+            self.text[self.current] = ""
+            return
+        if "Data Rights: One" in data:
+            self.current = "DATA_RIGHTS_SUMMARY"
+            self.text[self.current] = ""
+            return
+        # Now append the data chunk:
+        if self.current is not None:
+            self.text[self.current] = self.text[self.current] + data
+            return
+
+    def print_SOW(self):
+        print("Title: "+self.TITLE)
+        print("Background: "+self.text["BACKGROUND_SUMMARY"])
+        print("Activities: "+self.text["ACTIVITY_SUMMARY"])
+        print("Deliverables: "+self.text["DELIVERABLES_SUMMARY"])
+        print("Data Rights: "+self.text["DATA_RIGHTS_SUMMARY"])
+        print("Contribution Lead: "+str(self.LEAD))
+        print("Contribution Recipients: "+str(self.RECIPIENTS))
+        return
+
+    def one_line_SOW(self):
+        return "Background: "+self.text["BACKGROUND_SUMMARY"] + \
+               " Activities: "+self.text["ACTIVITY_SUMMARY"] + \
+               " Deliverables: "+self.text["DELIVERABLES_SUMMARY"] + \
+               " Data Rights: "+self.text["DATA_RIGHTS_SUMMARY"]
+        return
+
+    def extract_PI_value(self):
+        N = []
+        for word in self.text["DATA_RIGHTS_SUMMARY"].split():
+             try:
+                 N.append(float(word))
+             except ValueError:
+                 pass
+        # Return integer if possible:
+        if int(N[0]) == int(round(N[0])):
+            self.VALUE = int(N[0])
+        else:
+            self.VALUE = N[0]
+        return self.VALUE
 
 # ======================================================================
 
@@ -120,7 +242,8 @@ gdoc["NED-UTR"] = "https://docs.google.com/document/d/18_5hLK6vtHqDM2q5BfTdoaFB8
 
 proposal = {}
 for program in gdoc:
-    proposal[program] = ProposalParser(program, gdoc[program], vb=True)
+    proposal[program] = Proposal(program, gdoc[program], vb=False)
     proposal[program].download()
-    proposal[program].run()
-    proposal[program].report()
+    proposal[program].read()
+    proposal[program].print_csv()
+    proposal[program].print_SOW()
