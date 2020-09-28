@@ -36,7 +36,7 @@ class Proposal(HTMLParser):
             # Look up the Contribution Lead email address:
             self.contribution[S].EMAIL = ""
             # Look up the contribution category:
-            self.contribution[S].CATEGORY = ""
+            C = self.contribution[S].estimate_category()
             # Extract the contribution value:
             N = self.contribution[S].extract_PI_value()
             # Write out a CSV table row:
@@ -231,6 +231,42 @@ class Contribution():
         else:
             self.VALUE = N[0]
         return self.VALUE
+
+    def estimate_category(self):
+        self.CATEGORY = "Unknown"
+        if "ataset" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "1.1 - Old complementary dataset"
+            if "dded" in self.text["ACTIVITY_SUMMARY"]:
+                self.CATEGORY = "1.2 - Reprocessed/analyzed LSST data"
+            if "arget" in self.text["ACTIVITY_SUMMARY"]:
+                self.CATEGORY = "1.3 - New complementary targeted data"
+            if "urvey" in self.text["ACTIVITY_SUMMARY"]:
+                self.CATEGORY = "1.4 - New complementary survey"
+        if "Full IDAC" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "2.1 - Full IDAC"
+        if "Lite IDAC" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "2.2 - Lite IDAC"
+        if "Scientific Processing Center" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "2.3 - Computing resources for SCs"
+        if "elescope time" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "3.1 - Open telescope time"
+        if "ollow-up" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "3.2 - Active Follow-up Program"
+        if "directable" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "4.2 - Directable SW dev"
+        if "non-directable" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "4.3 - Non-directable SW dev"
+        if "eneral pool" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "4.1 - General pooled SW dev"
+        if "onstruction" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "5.1 - Construction"
+        if "ommissioning" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "5.2 - Commissioning"
+        if "ffset" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "5.3 - Operations Cost Offset"
+        if "nhancement" in self.text["ACTIVITY_SUMMARY"]:
+            self.CATEGORY = "5.4 - Non-SW Facility Enhancement"
+        return self.CATEGORY
 
 # ======================================================================
 
