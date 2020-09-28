@@ -11,11 +11,8 @@ class ProposalParser(HTMLParser):
         self.htmlfile = "."+program+".html"
         self.preamble = True
         self.count = 0
-        self.ID = []
-        self.URL = []
-        self.TITLE = []
-        self.EXCEPTION = []
-        self.LOI_CODE = []
+        self.current = None
+        self.contribution = {}
         return
 
     def download(self):
@@ -35,12 +32,12 @@ class ProposalParser(HTMLParser):
 
     def report(self):
         if self.vb: print("Extracted ",self.count," contributions:")
-        for k in range(self.count):
-            print(self.PROGRAM_CODE+"-"+self.ID[k]+",",
-                  '"'+self.TITLE[k]+'"'+",",
-                  self.URL[k]+",",
-                  self.LOI_CODE[k]+",",
-                  self.EXCEPTION[k])
+        for S in self.contribution:
+            print(self.PROGRAM_CODE+"-"+self.contribution[S].ID+",",
+                  '"'+self.contribution[S].TITLE+'"'+",",
+                  self.contribution[S].URL+",",
+                  self.contribution[S].LOI_CODE+",",
+                  self.contribution[S].EXCEPTION)
         return
 
     def handle_starttag(self, tag, attrs):
@@ -55,13 +52,16 @@ class ProposalParser(HTMLParser):
         elif tag == "h2":
             if self.vb: print("Encountered a new contribution: ")
             self.count = self.count + 1
-            self.ID.append("S"+str(self.count))
-            if self.vb: print("    Contribution ID: ", self.ID[-1])
+            new = Contribution()
+            new.ID = "S"+str(self.count)
+            self.current = new.ID
+            if self.vb: print("    Contribution ID: ", new.ID)
             for attr in attrs:
                 # print("     attr:", attr)
                 if attr[0] == "id": heading = attr[1]
-            self.URL.append(self.gdoc + "#heading=" + heading)
-            if self.vb: print("    Contribution section URL: ", self.URL[-1])
+            new.URL = self.gdoc + "#heading=" + heading
+            if self.vb: print("    Contribution section URL: ", new.URL)
+            self.contribution[self.current] = new
         return
 
     def handle_endtag(self, tag):
@@ -86,17 +86,28 @@ class ProposalParser(HTMLParser):
         # Get the contribution title:
         if "TITLE:" in data[0:12]:
             title = ":".join(data.split(":")[1:])[1:]
-            self.TITLE.append(title)
-            if self.vb: print("    Contribution Title: ", self.TITLE[-1])
+            self.contribution[self.current].TITLE = title
+            if self.vb: print("    Contribution Title: ", title)
         # Check for exception requests. Format: "Exception requested: please begin review on November 6"
         if "Exception requested:" in data[0:20]:
             request = data.split(":")[1][1:]
             due_date = " ".join(request.split(" ")[-2:])
-            self.EXCEPTION.append(due_date)
-            if self.vb: print("    Contribution Due Date: ", self.EXCEPTION[-1])        # Get the LOI Code:
+            self.contribution[self.current].EXCEPTION = due_date
+            if self.vb: print("    Contribution Due Date: ", due_date)        # Get the LOI Code:
         if "LOI Code:" in data[0:12]:
-            self.LOI_CODE.append(data.split(":")[1][1:])
-            if self.vb: print("    Contribution LOI Code: ", self.LOI_CODE[-1])
+            self.contribution[self.current].LOI_CODE = data.split(":")[1][1:]
+            if self.vb: print("    Contribution LOI Code: ", self.contribution[self.current].LOI_CODE)
+        return
+
+# ======================================================================
+
+class Contribution():
+    def __init__(self):
+        self.ID = None
+        self.URL = None
+        self.TITLE = None
+        self.EXCEPTION = None
+        self.LOI_CODE = None
         return
 
 # ======================================================================
@@ -113,5 +124,3 @@ for program in gdoc:
     proposal[program].download()
     proposal[program].run()
     proposal[program].report()
-
-print(proposal)
