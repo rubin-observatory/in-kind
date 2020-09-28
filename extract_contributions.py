@@ -3,17 +3,18 @@ from html.parser import HTMLParser
 
 class ProposalParser(HTMLParser):
 
-    def __init__(self, url, vb=False):
+    def __init__(self, program, url, vb=False):
         super().__init__()
         self.gdoc = url
         self.vb = vb
-        self.htmlfile = "proposal.html"
+        self.PROGRAM_CODE = program
+        self.htmlfile = "."+program+".html"
         self.preamble = True
-        self.PROGRAM_CODE = None
         self.count = 0
         self.ID = []
         self.URL = []
         self.TITLE = []
+        self.EXCEPTION = []
         self.LOI_CODE = []
         return
 
@@ -26,6 +27,7 @@ class ProposalParser(HTMLParser):
         return
 
     def run(self):
+        if self.vb: print("Reading proposal from ",self.htmlfile)
         f = open(self.htmlfile, 'r')
         self.feed(f.read())
         f.close()
@@ -37,7 +39,8 @@ class ProposalParser(HTMLParser):
             print(self.PROGRAM_CODE+"-"+self.ID[k]+",",
                   '"'+self.TITLE[k]+'"'+",",
                   self.URL[k]+",",
-                  self.LOI_CODE[k])
+                  self.LOI_CODE[k]+",",
+                  self.EXCEPTION[k])
         return
 
     def handle_starttag(self, tag, attrs):
@@ -67,32 +70,48 @@ class ProposalParser(HTMLParser):
 
     def handle_data(self, data):
         # Ignore all the instructions:
-        if data[0:12] != "Instructions":
+        if data[0:12] != "Instructions:":
             if self.vb: print("Encountered some text: ", data)
             pass
 
         # Get the Program Code:
-        if "Program Code" in data[0:12]:
-            self.PROGRAM_CODE = data.split(":")[1][1:]
-            if self.vb: print("Program Code: ", self.PROGRAM_CODE)
+        if "Program Code:" in data[0:12]:
+            THIS_PROGRAM_CODE = data.split(":")[1][1:]
+            if THIS_PROGRAM_CODE != self.PROGRAM_CODE:
+                raise ValueError('Unexpected Program Code '+THIS_PROGRAM_CODE)
+            if self.vb: print("Confirmed Program Code: ", THIS_PROGRAM_CODE)
 
         if self.preamble: return
 
         # Get the contribution title:
-        if "TITLE" in data[0:12]:
+        if "TITLE:" in data[0:12]:
             title = ":".join(data.split(":")[1:])[1:]
             self.TITLE.append(title)
             if self.vb: print("    Contribution Title: ", self.TITLE[-1])
-        # Get the LOI Code:
-        if "LOI Code" in data[0:12]:
+        # Check for exception requests. Format: "Exception requested: please begin review on November 6"
+        if "Exception requested:" in data[0:20]:
+            request = data.split(":")[1][1:]
+            due_date = " ".join(request.split(" ")[-2:])
+            self.EXCEPTION.append(due_date)
+            if self.vb: print("    Contribution Due Date: ", self.EXCEPTION[-1])        # Get the LOI Code:
+        if "LOI Code:" in data[0:12]:
             self.LOI_CODE.append(data.split(":")[1][1:])
             if self.vb: print("    Contribution LOI Code: ", self.LOI_CODE[-1])
         return
 
 # ======================================================================
 
-gdoc = "https://docs.google.com/document/d/1NDnIvLaiJ9PRXGFwVmU9aMQaqJWnNstAqNUjPUoduio/edit"
+gdoc = {}
+# Proposal Template:
+# gdoc["BUL-NAO"] = "https://docs.google.com/document/d/1NDnIvLaiJ9PRXGFwVmU9aMQaqJWnNstAqNUjPUoduio/edit"
+# NED-UTR:
+gdoc["NED-UTR"] = "https://docs.google.com/document/d/18_5hLK6vtHqDM2q5BfTdoaFB8C2Ait_JZzzbhCiy59E/edit"
 
-parser = ProposalParser(gdoc, vb=False)
-parser.run()
-parser.report()
+proposal = {}
+for program in gdoc:
+    proposal[program] = ProposalParser(program, gdoc[program], vb=True)
+    proposal[program].download()
+    proposal[program].run()
+    proposal[program].report()
+
+print(proposal)
