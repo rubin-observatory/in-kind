@@ -13,6 +13,7 @@ class Proposal(HTMLParser):
         self.count = 0
         self.current = None
         self.contribution = {}
+        self.directory = None
         return
 
     def download(self):
@@ -34,7 +35,7 @@ class Proposal(HTMLParser):
         if self.vb: print("Extracted ",self.count," contributions:")
         for S in self.contribution:
             # Look up the Contribution Lead email address:
-            self.contribution[S].EMAIL = ""
+            E = self.contribution[S].match_email(self.directory)
             # Look up the contribution category:
             C = self.contribution[S].estimate_category()
             # Extract the contribution value:
@@ -90,9 +91,9 @@ class Proposal(HTMLParser):
 
     def handle_data(self, data):
         # Ignore all the instructions:
-        if data[0:20] != "Instructions:":
-            if self.vb: print("Encountered some text: ", data)
-            pass
+        if "Instructions:" in data:
+            if self.vb: print("Ignoring the ", data)
+            return
 
         # Check the Program Code:
         if "Program Code:" in data[0:20]:
@@ -101,7 +102,16 @@ class Proposal(HTMLParser):
                 raise ValueError('Unexpected Program Code '+THIS_PROGRAM_CODE)
             if self.vb: print("Confirmed Program Code: ", THIS_PROGRAM_CODE)
 
-        if self.preamble: return
+        # Extract the Personnel information:
+        if "Key Personnel:" in data[0:20]:
+            self.directory = Directory()
+            return
+
+        # Get key personnel info from the preamble:
+        if self.preamble:
+            if self.directory is not None:
+                self.directory.read(data)
+            return
 
         # Extend the current contribution with whatever text was found:
         self.contribution[self.current].read(data)
@@ -153,6 +163,8 @@ class Contribution():
         if "Contribution Recipients:" in data[0:40]:
             self.RECIPIENTS = data.split(":")[1][1:]
             if self.vb: print("    Contribution Recipients: ", self.RECIPIENTS)
+            # The recipients are the last thing of interest in the section, so ignore everything else from here.
+            self.current = None
             return
         # Ignore the main subsection headings:
         if "PLANNED ACTIVITIES" in data: return
@@ -268,6 +280,50 @@ class Contribution():
             self.CATEGORY = "5.4 - Non-SW Facility Enhancement"
         return self.CATEGORY
 
+    def match_email(self, directory):
+        surname = self.LEAD.split()[-1]
+        for name in directory.people:
+            if surname in name:
+                self.EMAIL = directory.people[name]["EMAIL"]
+        return self.EMAIL
+
+# ======================================================================
+
+class Directory():
+    def __init__(self, vb=False):
+        self.vb = vb
+        self.current_person = None
+        self.current_field = None
+        self.people = {}
+        return
+
+    def read(self, data):
+        # Get the role and name, and start a new person:
+        if "Lead:" in data or "Manager:" in data:
+            new = {}
+            new["ROLE"] = data.split(":")[0]
+            sentence = ":".join(data.split(":")[1:])[1:]
+            new["NAME"] = sentence.split(",")[0]
+            self.current_person = new["NAME"]
+            self.people[self.current_person] = new
+            return
+        # Read the email or address and add it to the new Person
+        if "Email:" in data:
+            self.current_field = "EMAIL"
+            self.people[self.current_person][self.current_field] = ""
+        if "Address:" in data:
+            self.current_field = "ADDRESS"
+            self.people[self.current_person][self.current_field] = ""
+        if "Abstract" in data:
+            self.current_field = None
+        # Clean up the current data chunk:
+        clean = data.replace("Email: ","").replace("Address: ","").replace("\xa0","")
+        # Append the current data chunk to the current field:
+        if self.current_field is not None:
+            self.people[self.current_person][self.current_field] = self.people[self.current_person][self.current_field] + clean
+        # print("Current person: ", self.people[self.current_person])
+        return
+
 # ======================================================================
 
 gdoc = {}
@@ -282,4 +338,4 @@ for program in gdoc:
     proposal[program].download()
     proposal[program].read()
     proposal[program].print_csv()
-    proposal[program].print_SOW()
+    # proposal[program].print_SOW()
