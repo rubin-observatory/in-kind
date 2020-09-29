@@ -42,18 +42,18 @@ class Proposal(HTMLParser):
             # Extract the contribution value:
             N = self.contribution[S].extract_PI_value()
             # Write out a CSV table row:
-            print(self.PROGRAM_CODE+"-"+self.contribution[S].ID+",",
-                  ",,",
-                  '"'+self.contribution[S].TITLE+'"'+",",
-                  self.contribution[S].URL+",",
-                  self.contribution[S].LEAD+",",
-                  self.contribution[S].EMAIL+",",
-                  self.contribution[S].LOI_CODE+",",
-                  self.contribution[S].CATEGORY+",",
-                  self.contribution[S].RECIPIENTS+",",
-                  '"'+self.contribution[S].one_line_SOW()+'"'+",",
-                  str(self.contribution[S].VALUE)+",",
-                  self.contribution[S].EXCEPTION)
+            print(self.PROGRAM_CODE+"-"+self.contribution[S].ID+","+
+                  ",,"+
+                  '"'+str(self.contribution[S].TITLE)+'"'+","+
+                  str(self.contribution[S].URL)+","+
+                  str(self.contribution[S].LEAD)+","+
+                  str(self.contribution[S].EMAIL)+","+
+                  str(self.contribution[S].LOI_CODE)+","+
+                  str(self.contribution[S].CATEGORY)+","+
+                  str(self.contribution[S].RECIPIENTS)+","+
+                  '"'+self.contribution[S].one_line_SOW()+'"'+","+
+                  str(self.contribution[S].VALUE)+","+
+                  str(self.contribution[S].EXCEPTION))
         return
 
     def print_SOW(self):
