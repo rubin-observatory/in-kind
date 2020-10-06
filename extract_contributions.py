@@ -29,7 +29,7 @@ def extract_contributions(argv):
 # ----------------------------------------------------------------------
 # Handle options and arguments:
     try:
-        opts, args = getopt.getopt(argv, "hv", ["help","verbose"])
+        opts, args = getopt.getopt(argv, "hvf", ["help","verbose","fast"])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(str(err)) # will print something like "option -a not recognized"
@@ -37,12 +37,15 @@ def extract_contributions(argv):
         return
 
     vb = False
+    fast = False
     for o, a in opts:
         if o in ("-h", "--help"):
             print(extract_contributions.__doc__)
             return
         elif o in ("-v", "--verbose"):
             vb = True
+        elif o in ("-f", "--fast"):
+            fast = True
         else:
             assert False, "Unhandled option"
 
@@ -72,7 +75,10 @@ def extract_contributions(argv):
     proposal = {}
     for program in gdoc:
         proposal[program] = inkind.Proposal(program, gdoc[program], vb=vb)
-        proposal[program].download()
+        if fast:
+            pass
+        else:
+            proposal[program].download()
         proposal[program].read()
         proposal[program].print_csv()
         # user_input = sys.stdin.readline().rstrip()

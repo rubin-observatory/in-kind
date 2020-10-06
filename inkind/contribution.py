@@ -91,7 +91,7 @@ class Contribution():
             return
         # Now append the data chunk:
         if self.current is not None:
-            self.text[self.current] = self.text[self.current] + data
+            self.text[self.current] = self.text[self.current] + data.replace('"',"'")
             return
 
     def print_SOW(self):
