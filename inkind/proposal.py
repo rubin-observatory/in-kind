@@ -43,7 +43,6 @@ class Proposal(HTMLParser):
             N = self.contribution[S].extract_PI_value()
             # Write out a CSV table row:
             print(self.PROGRAM_CODE+"-"+self.contribution[S].ID+","+
-                  ",,"+
                   '"'+str(self.contribution[S].TITLE)+'"'+","+
                   str(self.contribution[S].URL)+","+
                   str(self.contribution[S].LEAD)+","+

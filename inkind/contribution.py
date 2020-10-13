@@ -177,7 +177,7 @@ class Contribution():
             self.EMAIL = None
         else:
             # Attempt to extract their surname
-            # print(self.LEAD)
+            # print("self.LEAD = ",self.LEAD)
             surname = self.LEAD.split()[-1]
             for name in directory.people:
                 if surname in name:
