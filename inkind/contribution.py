@@ -21,28 +21,29 @@ class Contribution():
     def read(self, data):
         # Get the contribution title:
         if "TITLE:" in data[0:20]:
-            self.TITLE = ":".join(data.split(":")[1:])[1:].lstrip(' ')
+            if self.vb: print("    Data: ", data[0:20])
+            self.TITLE = ":".join(data.split(":")[1:])[1:].strip()
             if self.vb: print("    Contribution Title: ", self.TITLE)
             return
         # Check for exception requests. Format: "Exception requested: please begin review on November 6"
         if "Exception requested:" in data[0:20]:
             request = data.split(":")[1][1:]
-            self.EXCEPTION = " ".join(request.split(" ")[-2:]).lstrip(' ')
+            self.EXCEPTION = " ".join(request.split(" ")[-2:]).strip()
             if self.vb: print("    Contribution Due Date: ", self.EXCEPTION)
             return
         # Get the LOI Code:
         if "LOI Code:" in data[0:20]:
-            self.LOI_CODE = data.split(":")[1][1:].lstrip(' ')
+            self.LOI_CODE = data.split(":")[1][1:].strip()
             if self.vb: print("    Contribution LOI Code: ", self.LOI_CODE)
             return
         # Get the Contribution Lead:
         if "Contribution Lead:" in data[0:20]:
-            self.LEAD = data.split(":")[1][1:].lstrip(' ')
+            self.LEAD = data.split(":")[1][1:].strip()
             if self.vb: print("    Contribution Lead: ", self.LEAD)
             return
         # Get the Contribution Recipients:
         if "Contribution Recipients:" in data[0:40]:
-            self.RECIPIENTS = data.split(":")[1][1:].lstrip(' ')
+            self.RECIPIENTS = data.split(":")[1][1:].strip()
             if self.vb: print("    Contribution Recipients: ", self.RECIPIENTS)
             # The recipients are the last thing of interest in the section, so ignore everything else from here.
             self.current = None
@@ -171,9 +172,12 @@ class Contribution():
         return self.CATEGORY
 
     def match_email(self, directory):
+        # print(directory.people)
         if self.LEAD is None:
             self.EMAIL = None
         else:
+            # Attempt to extract their surname
+            # print(self.LEAD)
             surname = self.LEAD.split()[-1]
             for name in directory.people:
                 if surname in name:

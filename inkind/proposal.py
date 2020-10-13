@@ -48,9 +48,9 @@ class Proposal(HTMLParser):
                   str(self.contribution[S].URL)+","+
                   str(self.contribution[S].LEAD)+","+
                   str(self.contribution[S].EMAIL)+","+
-                  str(self.contribution[S].LOI_CODE)+","+
+                  '"'+str(self.contribution[S].LOI_CODE)+'"'+","+
                   str(self.contribution[S].CATEGORY)+","+
-                  str(self.contribution[S].RECIPIENTS)+","+
+                  '"'+str(self.contribution[S].RECIPIENTS)+'"'+","+
                   '"'+self.contribution[S].one_line_SOW()+'"'+","+
                   str(self.contribution[S].VALUE)+","+
                   str(self.contribution[S].EXCEPTION))
@@ -74,7 +74,7 @@ class Proposal(HTMLParser):
         elif tag == "h2":
             if self.vb: print("Encountered a new contribution: ")
             self.count = self.count + 1
-            new = inkind.Contribution()
+            new = inkind.Contribution(vb=self.vb)
             new.ID = "S"+str(self.count)
             self.current = new.ID
             if self.vb: print("    Contribution ID: ", new.ID)
@@ -100,7 +100,7 @@ class Proposal(HTMLParser):
         if "Program Code:" in data[0:20]:
             THIS_PROGRAM_CODE = data.split(":")[1][1:]
             if THIS_PROGRAM_CODE != self.PROGRAM_CODE:
-                raise ValueError('Unexpected Program Code '+THIS_PROGRAM_CODE)
+                raise ValueError('Unexpected Program Code '+THIS_PROGRAM_CODE+' compared with '+self.PROGRAM_CODE)
             if self.vb: print("Confirmed Program Code: ", THIS_PROGRAM_CODE)
 
         # Extract the Personnel information:

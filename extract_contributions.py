@@ -14,8 +14,9 @@ def extract_contributions(argv):
         extract_contributions.py proposals.csv > contributions.csv
 
     FLAGS
-        -h    Print this message
-        -v    Verbose operation
+        -h         Print this message
+        -v         Verbose operation
+        -f --fast  Fast operation - skip the download of the doc html
 
     INPUTS
         proposal.csv    CSV file containing program codes, proposal URLs
