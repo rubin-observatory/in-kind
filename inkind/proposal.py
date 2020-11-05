@@ -42,17 +42,17 @@ class Proposal(HTMLParser):
             # Extract the contribution value:
             N = self.contribution[S].extract_PI_value()
             # Write out a CSV table row:
-            print(self.PROGRAM_CODE+"-"+self.contribution[S].ID+","+
+            print(self.contribution[S].ID+","+
                   '"'+str(self.contribution[S].TITLE)+'"'+","+
                   str(self.contribution[S].URL)+","+
                   str(self.contribution[S].LEAD)+","+
                   str(self.contribution[S].EMAIL)+","+
                   '"'+str(self.contribution[S].LOI_CODE)+'"'+","+
-                  str(self.contribution[S].CATEGORY)+","+
                   '"'+str(self.contribution[S].RECIPIENTS)+'"'+","+
                   '"'+self.contribution[S].one_line_SOW()+'"'+","+
                   str(self.contribution[S].VALUE)+","+
-                  str(self.contribution[S].EXCEPTION))
+                  str(self.contribution[S].EXCEPTION)+","+
+                  str(self.contribution[S].CATEGORY))
         return
 
     def print_SOW(self):
@@ -73,10 +73,10 @@ class Proposal(HTMLParser):
         elif tag == "h2":
             if self.vb: print("Encountered a new contribution: ")
             self.count = self.count + 1
-            new = inkind.Contribution(vb=self.vb)
-            new.ID = "S"+str(self.count)
+            # Set the Contribution ID to be sequential - we'll check for this as the contribution is read.
+            new = inkind.Contribution(vb=self.vb, program=self.PROGRAM_CODE)
+            new.ID = self.PROGRAM_CODE+"-S"+str(self.count)
             self.current = new.ID
-            if self.vb: print("    Contribution ID: ", new.ID)
             for attr in attrs:
                 # print("     attr:", attr)
                 if attr[0] == "id": heading = attr[1]

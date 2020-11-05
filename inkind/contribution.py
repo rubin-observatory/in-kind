@@ -1,9 +1,11 @@
+import sys
 
 # ======================================================================
 
 class Contribution():
-    def __init__(self, vb=False):
+    def __init__(self, vb=False, program=None):
         self.vb = vb
+        self.PROGRAM_CODE = program
         self.current = None
         self.ID = None
         self.URL = None
@@ -19,6 +21,13 @@ class Contribution():
         return
 
     def read(self, data):
+        # Check the contribution ID:
+        if "Statement of Work and Detailed Plan" in data:
+            THIS_ID = data.split(".")[0].strip()
+            if THIS_ID != self.ID[8:11]:
+                print("    WARNING: Modifying contribution ID to match value in proposal "+self.PROGRAM_CODE+". Proposal value cf sequential ID: ", THIS_ID, self.ID[8:11],"New ID:",self.PROGRAM_CODE+"-"+THIS_ID, file=sys.stderr)
+                self.ID = self.PROGRAM_CODE+"-"+THIS_ID
+            return
         # Get the contribution title:
         if "TITLE:" in data[0:20]:
             if self.vb: print("    Data: ", data[0:20])
