@@ -133,7 +133,7 @@ class Contribution():
                 except ValueError:
                     pass
             # Return integer if possible:
-            if int(N[0]) == int(round(N[0])):
+            if int(N[0]) == int(round(N[0]+0.01)):
                 self.VALUE = int(N[0])
             else:
                 self.VALUE = N[0]
