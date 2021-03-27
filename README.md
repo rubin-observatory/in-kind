@@ -1,6 +1,7 @@
 # in-kind
 
 _Phil Marshall_
+
 _Rubin Observatory In-kind Program Coordination Team_
 
 Python package for parsing in-kind proposals, scraping out the proposed contributions, and automatically generating SOWs. Designed for use by the Rubin IPC team, but made available publicly, e.g. to help participants in the Rubin in-kind program to check their edits to their program descriptions.
