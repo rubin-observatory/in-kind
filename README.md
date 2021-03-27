@@ -3,17 +3,21 @@
 _Phil Marshall_
 _Rubin Observatory In-kind Program Coordination Team_
 
-Python package for parsing in-kind proposals, scraping out the proposed contributions, and automatically generating SOWs and detailed plans. Designed for use by the Rubin IPC team, but made available to all participants in the Rubin in-kind program to help check their proposal work.
+Python package for parsing in-kind proposals, scraping out the proposed contributions, and automatically generating SOWs. Designed for use by the Rubin IPC team, but made available publicly, e.g. to help participants in the Rubin in-kind program to check their edits to their program descriptions.
 
 ## Examples
 
-1. Scrape proposed contributions out of the submitted proposal Google documents, and producing a CSV format data file for ingestion into the Rubin/CEC review spreadsheet.
+1. Scrape proposed contributions out of the submitted proposal Google documents, and producing a CSV format data file for ingestion into either the Rubin/CEC review spreadsheet or the IPC team's contribution tracker.
 
 ```bash
 ./extract_contributions.py proposals.csv > contributions.csv
 ```
 
-2. Parse a proposal Google document and produce two plain text files, 1) a Statement of Work and 2) a Detailed Plan.
+2. Parse a proposal Google document (or a set of them) and produce a plain text Statement of Work. (Under construction.)
+
+```bash
+./extract_sows.py proposals.csv > sows.txt
+```
 
 ## Installation
 
