@@ -137,7 +137,7 @@ class Contribution():
             # if int(N[0]) == int(round(N[0]+0.01)):
             #     self.VALUE = int(N[0])
             # else:
-            #     self.VALUE = N[0]
+            self.VALUE = N[0]
         except:
             self.VALUE = "Not yet available"
         return self.VALUE
