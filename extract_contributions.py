@@ -14,9 +14,10 @@ def extract_contributions(argv):
         extract_contributions.py proposals.csv > contributions.csv
 
     FLAGS
-        -h         Print this message
-        -v         Verbose operation
-        -f --fast  Fast operation - skip the download of the doc html
+        -h                  Print this message
+        -v                  Verbose operation
+        -f --fast           Fast operation - skip the download of the doc html
+        -j --just  PRO-COD  Fast operation - only re-download the named proposal
 
     INPUTS
         proposal.csv    CSV file containing program codes, proposal URLs
@@ -30,7 +31,7 @@ def extract_contributions(argv):
 # ----------------------------------------------------------------------
 # Handle options and arguments:
     try:
-        opts, args = getopt.getopt(argv, "hvf", ["help","verbose","fast"])
+        options, inputs = getopt.getopt(argv, "hvfj:", ["help","verbose","fast","just="])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(str(err)) # will print something like "option -a not recognized"
@@ -39,7 +40,8 @@ def extract_contributions(argv):
 
     vb = False
     fast = False
-    for o, a in opts:
+    updated_proposal = None
+    for o, a in options:
         if o in ("-h", "--help"):
             print(extract_contributions.__doc__)
             return
@@ -47,11 +49,14 @@ def extract_contributions(argv):
             vb = True
         elif o in ("-f", "--fast"):
             fast = True
+        elif o in ("-j", "--just"):
+            fast = True
+            updated_proposal = a
         else:
             assert False, "Unhandled option"
 
-    if len(args) == 1:
-        csvfile = args[0]
+    if len(inputs) == 1:
+        csvfile = inputs[0]
     else:
         print(extract_contributions.__doc__)
         return
@@ -76,7 +81,7 @@ def extract_contributions(argv):
     proposal = {}
     for program in gdoc:
         proposal[program] = inkind.Proposal(program, gdoc[program], vb=vb)
-        if fast:
+        if fast and program != updated_proposal:
             pass
         else:
             proposal[program].download()
