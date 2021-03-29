@@ -132,11 +132,12 @@ class Contribution():
                     N.append(float(word))
                 except ValueError:
                     pass
+            # PJM 2021-03-29 Switched to non-integer floats for PI value
             # Return integer if possible:
-            if int(N[0]) == int(round(N[0]+0.01)):
-                self.VALUE = int(N[0])
-            else:
-                self.VALUE = N[0]
+            # if int(N[0]) == int(round(N[0]+0.01)):
+            #     self.VALUE = int(N[0])
+            # else:
+            #     self.VALUE = N[0]
         except:
             self.VALUE = "Not yet available"
         return self.VALUE
