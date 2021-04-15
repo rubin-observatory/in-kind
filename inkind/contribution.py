@@ -124,6 +124,13 @@ class Contribution():
             line = "Not yet available"
         return line
 
+    def timeline(self):
+        try:
+            line = self.text["DELIVERABLES_TIMELINE"]
+        except:
+            line = "Not yet available"
+        return line
+
     def extract_PI_value(self):
         try:
             N = []
