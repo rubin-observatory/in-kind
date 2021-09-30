@@ -50,9 +50,11 @@ class Proposal(HTMLParser):
                   '"'+str(self.contribution[S].LOI_CODE)+'"'+","+
                   '"'+str(self.contribution[S].RECIPIENTS)+'"'+","+
                   '"'+self.contribution[S].one_line_SOW()+'"'+","+
-                  str(self.contribution[S].VALUE)+","+
-                  str(self.contribution[S].EXCEPTION)+","+
-                  str(self.contribution[S].CATEGORY))
+                  '"'+self.contribution[S].timeline()+'"'+","+
+                  str(self.contribution[S].VALUE))
+                  # PJM 2021-04-14: No need to extract exceptions and categories any more, the Tracker includes the category and the exceptions no longer matter
+                  # str(self.contribution[S].EXCEPTION)+","+
+                  # str(self.contribution[S].CATEGORY))
         return
 
     def print_SOW(self):
