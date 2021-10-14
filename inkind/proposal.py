@@ -44,14 +44,14 @@ class Proposal(HTMLParser):
             # Write out a CSV table row:
             print(self.contribution[S].ID+","+
                   '"'+str(self.contribution[S].TITLE)+'"'+","+
-                  str(self.contribution[S].URL)+","+
                   str(self.contribution[S].LEAD)+","+
                   str(self.contribution[S].EMAIL)+","+
-                  '"'+str(self.contribution[S].LOI_CODE)+'"'+","+
                   '"'+str(self.contribution[S].RECIPIENTS)+'"'+","+
                   '"'+self.contribution[S].one_line_SOW()+'"'+","+
                   '"'+self.contribution[S].timeline()+'"'+","+
-                  str(self.contribution[S].VALUE))
+                  str(self.contribution[S].VALUE)+","+
+                  str(self.contribution[S].URL)+","+
+                  '"'+str(self.contribution[S].LOI_CODE)+'"')
                   # PJM 2021-04-14: No need to extract exceptions and categories any more, the Tracker includes the category and the exceptions no longer matter
                   # str(self.contribution[S].EXCEPTION)+","+
                   # str(self.contribution[S].CATEGORY))
