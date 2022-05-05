@@ -100,7 +100,8 @@ class Proposal(HTMLParser):
     def handle_starttag(self, tag, attrs):
         # Detect the end of the preamble:
         if tag == "hr" and self.preamble:
-            if self.vb: print("Leaving the preamble")
+            if self.vb: print("Directory: ",self.directory.people)
+            if self.vb: print("No longer in the preamble...")
             self.preamble = False
 
         # First two headiings are the proposal title and abstract, in the document preamble - ignore these.
@@ -149,7 +150,15 @@ class Proposal(HTMLParser):
                 self.directory.read(data)
             return
 
+        # If there is a TOC, ignore it - but reset the preamble:
+        if "Contents" in data[0:20]:
+            self.preamble = True
+            if self.vb: print("Ignoring the TOC...")
+            return
+
         # Extend the current contribution with whatever text was found:
+        # print("self.current = ",self.current)
+        # print("data = ",data)
         self.contribution[self.current].read(data)
 
         return
