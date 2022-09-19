@@ -3,6 +3,37 @@ import sys
 # ======================================================================
 
 class Contribution():
+    """
+    Example contribution section subheadings, with their content chunks:
+
+    S1. Statement of Work and Detailed Plan for Proposed Contribution 1
+      S1.1 TITLE: self.TITLE
+      S1.2 BACKGROUND: RELEVANT EXPERTISE AND EXPERIENCE
+        S1.2.1 Background: Description
+        self.text["BACKGROUND_DESCRIPTION"]
+        S1.2.2 Background: One Sentence Summary
+        self.text["BACKGROUND_SUMMARY"]
+      S1.3 PLANNED ACTIVITIES
+        S1.3.1 Activity: Description
+        self.text["ACTIVITY_DESCRIPTION"]
+        S1.3.2 Activity: One Sentence Summary
+        self.text["ACTIVITY_SUMMARY"]
+      S1.4 TECHNICAL OBJECTIVES AND DELIVERABLES
+        S1.4.1 Deliverables: Description
+        self.text["DELIVERABLES_DESCRIPTION"]
+        S1.4.2 Deliverables: One Sentence Summary
+        self.text["DELIVERABLES_SUMMARY"]
+        S1.4.3 Deliverables: Timeline
+        self.text["DELIVERABLES_TIMELINE"]
+      S1.5 EXPECTED RIGHTS TO THE LSST DATA
+        S1.5.1 Data Rights: Description
+        self.text["DATA_RIGHTS_DESCRIPTION"]
+        S1.5.2: Data Rights: One Sentence Summary
+        self.text["DATA_RIGHTS_SUMMARY"]
+      S1.6 KEY PERSONNEL
+      self.text["KEY_PERSONNEL"]
+
+    """
     def __init__(self, vb=False, program=None):
         self.vb = vb
         self.PROGRAM_CODE = program
@@ -18,6 +49,16 @@ class Contribution():
         self.VALUE = None
         self.CATEGORY = None
         self.text = {}
+        self.text["BACKGROUND_DESCRIPTION"] = "None"
+        self.text["BACKGROUND_SUMMARY"] = "None"
+        self.text["ACTIVITY_DESCRIPTION"] = "None"
+        self.text["ACTIVITY_SUMMARY"] = "None"
+        self.text["DELIVERABLES_DESCRIPTION"] = "None"
+        self.text["DELIVERABLES_SUMMARY"] = "None"
+        self.text["DELIVERABLES_TIMELINE"] = "None"
+        self.text["DATA_RIGHTS_DESCRIPTION"] = "None"
+        self.text["DATA_RIGHTS_SUMMARY"] = "None"
+        self.text["KEY_PERSONNEL"] = "None"
         return
 
     def read(self, data):
@@ -57,11 +98,11 @@ class Contribution():
             # The recipients are the last thing of interest in the section, so ignore everything else from here.
             self.current = None
             return
-        # Ignore the main subsection headings:
+        # Ignore the main subsection headings, there shouldn't be any contingent
+        # beneath them:
         if "PLANNED ACTIVITIES" in data: return
         if "TECHNICAL OBJECTIVES" in data: return
         if "EXPECTED RIGHTS" in data: return
-        if "KEY PERSONNEL" in data: return
         # Set the current subsection:
         if "Background: Description" in data:
             self.current = "BACKGROUND_DESCRIPTION"
@@ -93,6 +134,10 @@ class Contribution():
             return
         if "Data Rights: Description" in data:
             self.current = "DATA_RIGHTS_DESCRIPTION"
+            self.text[self.current] = ""
+            return
+        if "KEY PERSONNEL" in data:
+            self.current = "KEY_PERSONNEL"
             self.text[self.current] = ""
             return
         if "Data Rights: One" in data:

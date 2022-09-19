@@ -32,7 +32,7 @@ class Proposal(HTMLParser):
         f.close()
         return
 
-    def print_csv(self):
+    def print_csv_metadata(self):
         if self.vb: print("Extracted ",self.count," contributions:")
         for S in self.contribution:
             # Look up the Contribution Lead email address:
@@ -44,17 +44,51 @@ class Proposal(HTMLParser):
             # Write out a CSV table row:
             print(self.contribution[S].ID+","+
                   '"'+str(self.contribution[S].TITLE)+'"'+","+
-                  str(self.contribution[S].URL)+","+
                   str(self.contribution[S].LEAD)+","+
                   str(self.contribution[S].EMAIL)+","+
-                  '"'+str(self.contribution[S].LOI_CODE)+'"'+","+
                   '"'+str(self.contribution[S].RECIPIENTS)+'"'+","+
                   '"'+self.contribution[S].one_line_SOW()+'"'+","+
                   '"'+self.contribution[S].timeline()+'"'+","+
-                  str(self.contribution[S].VALUE))
+                  str(self.contribution[S].VALUE)+","+
+                  str(self.contribution[S].URL)+","+
+                  '"'+str(self.contribution[S].LOI_CODE)+'"')
                   # PJM 2021-04-14: No need to extract exceptions and categories any more, the Tracker includes the category and the exceptions no longer matter
                   # str(self.contribution[S].EXCEPTION)+","+
                   # str(self.contribution[S].CATEGORY))
+        return
+
+    def print_csv(self):
+        if self.vb: print("Extracted ",self.count," contributions:")
+        for S in self.contribution:
+            # Look up the Contribution Lead email address:
+            E = self.contribution[S].match_email(self.directory)
+            # Look up the contribution category:
+            C = self.contribution[S].estimate_category()
+            # Extract the contribution value:
+            N = self.contribution[S].extract_PI_value()
+            # print(self.contribution[S].text)
+            # Write out a CSV table row:
+            print(self.contribution[S].ID+","+
+                  '"'+str(self.contribution[S].TITLE)+'"'+","+
+                  str(self.contribution[S].LEAD)+","+
+                  str(self.contribution[S].EMAIL)+","+
+                  '"'+str(self.contribution[S].RECIPIENTS)+'"'+","+
+                  '"'+self.contribution[S].one_line_SOW()+'"'+","+
+                  '"'+self.contribution[S].timeline()+'"'+","+
+                  str(self.contribution[S].VALUE)+","+
+                  str(self.contribution[S].URL)+","+
+                  '"'+str(self.contribution[S].LOI_CODE)+'"'+","+
+                  '"'+self.contribution[S].text['BACKGROUND_DESCRIPTION']+'"'+","+
+                  '"'+self.contribution[S].text['BACKGROUND_SUMMARY']+'"'+","+
+                  '"'+self.contribution[S].text['ACTIVITY_DESCRIPTION']+'"'+","+
+                  '"'+self.contribution[S].text['ACTIVITY_SUMMARY']+'"'+","+
+                  '"'+self.contribution[S].text['DELIVERABLES_DESCRIPTION']+'"'+","+
+                  '"'+self.contribution[S].text['DELIVERABLES_SUMMARY']+'"'+","+
+                  '"'+self.contribution[S].text['DELIVERABLES_TIMELINE']+'"'+","+
+                  '"'+self.contribution[S].text['DATA_RIGHTS_DESCRIPTION']+'"'+","+
+                  '"'+self.contribution[S].text['DATA_RIGHTS_SUMMARY']+'"'+","+
+                  '"'+self.contribution[S].text['KEY_PERSONNEL']+'"'
+                  )
         return
 
     def print_SOW(self):
@@ -66,7 +100,8 @@ class Proposal(HTMLParser):
     def handle_starttag(self, tag, attrs):
         # Detect the end of the preamble:
         if tag == "hr" and self.preamble:
-            if self.vb: print("Leaving the preamble")
+            if self.vb: print("Directory: ",self.directory.people)
+            if self.vb: print("No longer in the preamble...")
             self.preamble = False
 
         # First two headiings are the proposal title and abstract, in the document preamble - ignore these.
@@ -115,7 +150,15 @@ class Proposal(HTMLParser):
                 self.directory.read(data)
             return
 
+        # If there is a TOC, ignore it - but reset the preamble:
+        if "Contents" in data[0:20]:
+            self.preamble = True
+            if self.vb: print("Ignoring the TOC...")
+            return
+
         # Extend the current contribution with whatever text was found:
+        # print("self.current = ",self.current)
+        # print("data = ",data)
         self.contribution[self.current].read(data)
 
         return

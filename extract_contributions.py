@@ -8,7 +8,7 @@ import inkind
 
 def extract_contributions(argv):
     """
-    Read in a csv file containing program codes and proposal Google doc URLs and extract the proposed contributions' basic information.
+    Read in a csv file containing program codes and proposal Google doc URLs and extract the proposed contributions' basic information and contribution descriptions.
 
     USAGE
         extract_contributions.py proposals.csv > contributions.csv
