@@ -9,6 +9,7 @@ class Proposal(HTMLParser):
         self.gdoc = url
         self.vb = vb
         self.PROGRAM_CODE = program
+        self.INSTITUTION = None
         self.htmlfile = "."+program+".html"
         self.preamble = True
         self.count = 0
@@ -97,6 +98,20 @@ class Proposal(HTMLParser):
             print(self.contribution[S].print_SOW())
         return
 
+    def print_program_csv(self):
+        if self.vb: print(self.directory.people)
+        PL = self.directory.PL
+        PM = self.directory.PM
+        people = self.directory.people
+        print('"'+str(self.PROGRAM_CODE)+'"'+","+
+              '"'+str(PL)+'"'+","+
+              '"'+str(people[PL]["EMAIL"])+'"'+","
+              '"'+str(PM)+'"'+","+
+              '"'+str(people[PM]["EMAIL"])+'"'+","
+              '"'+str(self.INSTITUTION)+'"'+","
+              '"'+str(people[PL]["ADDRESS"])+'"')
+        return
+
     def handle_starttag(self, tag, attrs):
         # Detect the end of the preamble:
         if tag == "hr" and self.preamble:
@@ -138,6 +153,11 @@ class Proposal(HTMLParser):
             if THIS_PROGRAM_CODE != self.PROGRAM_CODE:
                 raise ValueError('Unexpected Program Code '+THIS_PROGRAM_CODE+' compared with '+self.PROGRAM_CODE)
             if self.vb: print("Confirmed Program Code: ", THIS_PROGRAM_CODE)
+
+        # Get the Institution:
+        if "Participating Institution" in data:
+            self.INSTITUTION = str.join(":", data.split(":")[1:]).strip()
+            if self.vb: print("Institution: ", self.INSTITUTION)
 
         # Extract the Personnel information:
         if "Key Personnel:" in data[0:20]:
