@@ -6,6 +6,8 @@ class Directory():
         self.current_person = None
         self.current_field = None
         self.people = {}
+        self.PL = None
+        self.PM = None
         return
 
     def read(self, data):
@@ -18,6 +20,8 @@ class Directory():
             # print("NAME check:",new["NAME"]," extracted from data:",data)
             self.current_person = new["NAME"]
             self.people[self.current_person] = new
+            if "Pro" in new["ROLE"] and "Lead" in new["ROLE"]: self.PL = self.current_person
+            if "Program Manager" in new["ROLE"]: self.PM = self.current_person
             return
         # Read the email or address and add it to the new Person
         elif "Email:" in data:
